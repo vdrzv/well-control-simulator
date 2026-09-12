@@ -1,0 +1,134 @@
+{% extends "admin_base.html" %}
+{% block title %}{{ "Create case" if mode == "create" else "Edit case" }}{% endblock %}
+{% block head %}
+<style>
+    .form-panel { padding: 18px; }
+
+    .name-field {
+        margin-bottom: 18px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid rgba(143, 160, 175, .14);
+    }
+
+    .field-groups { display: grid; gap: 18px; }
+
+    .field-group {
+        margin: 0;
+        padding: 14px;
+        border: 1px solid rgba(143, 160, 175, .14);
+        border-radius: 10px;
+        background: rgba(6, 11, 16, .22);
+    }
+
+    .field-group legend {
+        float: none;
+        width: auto;
+        margin: 0 0 10px;
+        padding: 0 5px;
+        color: var(--accent);
+        font-size: .76rem;
+        font-weight: 800;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+    }
+
+    .fields {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    label { display: grid; gap: 6px; color: var(--muted); font-size: .73rem; font-weight: 650; }
+
+    input {
+        width: 100%;
+        min-height: 39px;
+        padding: 8px 10px;
+        border: 1px solid rgba(143, 160, 175, .25);
+        border-radius: 7px;
+        outline: 0;
+        background: #0d141c;
+        color: var(--text);
+    }
+
+    input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(224, 161, 38, .13);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 9px;
+        margin-top: 18px;
+    }
+
+    @media (max-width: 900px) { .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) {
+        .form-panel { padding: 12px; }
+        .fields { grid-template-columns: minmax(0, 1fr); }
+        .form-actions { flex-direction: column-reverse; }
+        .form-actions .button { width: 100%; }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1>{{ "Create case" if mode == "create" else "Edit case" }}</h1>
+        <p class="subtitle">
+            {% if mode == "create" %}Configure a new simulation scenario.{% else %}Case #{{ case.id }} · Changes reset its active simulation state.{% endif %}
+        </p>
+    </div>
+</div>
+
+{% if saved %}
+<div class="notice">
+    {% if saved == "created" %}Case created successfully.
+    {% elif saved == "copied" %}Case copied successfully.
+    {% else %}Changes saved successfully.
+    {% endif %}
+</div>
+{% endif %}
+
+{% if errors %}
+<div class="notice error">
+    <strong>Please correct the form:</strong>
+    <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form class="panel form-panel" method="post" action="{{ '/admin/cases/new' if mode == 'create' else '/admin/cases/' ~ case.id ~ '/edit' }}">
+    <label class="name-field">
+        Case name
+        <input type="text" name="name" value="{{ values.name }}" maxlength="255" required autofocus>
+    </label>
+
+    <div class="field-groups">
+        {% for group in field_definitions|map(attribute='group')|unique %}
+        <fieldset class="field-group">
+            <legend>{{ group }}</legend>
+            <div class="fields">
+                {% for field in field_definitions if field.group == group %}
+                <label>
+                    {{ field.label }}
+                    <input
+                        type="number"
+                        name="{{ field.name }}"
+                        step="{{ field.step }}"
+                        value="{{ values[field.name] }}"
+                        required
+                    >
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+        {% endfor %}
+    </div>
+
+    <div class="form-actions">
+        <a class="button" href="/admin/cases">Cancel</a>
+        <button class="button primary" type="submit">{{ "Create case" if mode == "create" else "Save changes" }}</button>
+    </div>
+</form>
+{% endblock %}

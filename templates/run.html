@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Run Case</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.runPageData = {
+            runId: {{ run_id }},
+            runState: {{ run_state|tojson }},
+            resultMessage: {{ result_message|tojson }},
+            analysisUrl: {{ ('/runs/' ~ run_id ~ '/analysis')|tojson if run_state in ['failed', 'completed'] else 'null' }},
+            caseId: {{ case_id }},
+            user: {{ user|tojson }},
+            sessionId: {{ session_id|tojson }},
+            caseData: {{ case_data|tojson }},
+            mInit: {{ m_init|tojson }},
+            frontendInitData: {{ frontend_init_data|tojson }}
+        };
+    </script>
+    {% if vite_dev_mode %}
+    <script type="module" src="{{ vite_dev_server_url }}/@vite/client"></script>
+    <script type="module" src="{{ vite_dev_server_url }}/src/main.ts"></script>
+    {% else %}
+    {% for css_file in vite_css_files %}
+    <link rel="stylesheet" href="/{{ css_file }}">
+    {% endfor %}
+    <script type="module" src="/{{ vite_js_file }}"></script>
+    {% endif %}
+</head>
+<body>
+<div id="app"></div>
+</body>
+</html>

@@ -1,0 +1,78 @@
+{
+  "gauges": [
+    {
+      "id": "pressure-1",
+      "title": "Drillpipe",
+      "unit": "PSI",
+      "pressure": 145,
+      "minPressure": 0,
+      "maxPressure": 300,
+      "tickValues": [0, 50, 100, 150, 200, 250, 300],
+      "colors": {
+        "backgroundStart": "#202832",
+        "backgroundEnd": "#161d25",
+        "cardBackground": "#202832",
+        "cardBorder": "#65717c",
+        "cardShadow": "rgba(0, 0, 0, 0.32)",
+        "title": "#0057b8",
+        "arc": "#0057b8",
+        "tick": "#66717f",
+        "tickLabel": "#66717f",
+        "needle": "#18212b",
+        "value": "#18212b"
+      },
+      "gauge": {
+        "viewBox": "0 0 220 200",
+        "cx": 110,
+        "cy": 110,
+        "arcRadius": 100,
+        "strokeWidth": 5,
+        "centerDotRadius": 10,
+        "valueYOffset": 50,
+        "sweepStartDeg": 225,
+        "sweepSizeDeg": 270,
+        "needleInset": 10,
+        "tickOuterOffset": 2,
+        "tickInnerOffset": 14,
+        "labelInset": 28
+      }
+    },
+    {
+      "id": "pressure-2",
+      "title": "Casing",
+      "unit": "PSI",
+      "pressure": 180,
+      "minPressure": 0,
+      "maxPressure": 300,
+      "tickValues": [0, 50, 100, 150, 200, 250, 300],
+      "colors": {
+        "backgroundStart": "#202832",
+        "backgroundEnd": "#161d25",
+        "cardBackground": "#202832",
+        "cardBorder": "#65717c",
+        "cardShadow": "rgba(0, 0, 0, 0.32)",
+        "title": "#0057b8",
+        "arc": "#0057b8",
+        "tick": "#66717f",
+        "tickLabel": "#66717f",
+        "needle": "#18212b",
+        "value": "#18212b"
+      },
+      "gauge": {
+        "viewBox": "0 0 220 200",
+        "cx": 110,
+        "cy": 110,
+        "arcRadius": 100,
+        "strokeWidth": 5,
+        "centerDotRadius": 10,
+        "valueYOffset": 50,
+        "sweepStartDeg": 225,
+        "sweepSizeDeg": 270,
+        "needleInset": 10,
+        "tickOuterOffset": 2,
+        "tickInnerOffset": 14,
+        "labelInset": 28
+      }
+    }
+  ]
+}

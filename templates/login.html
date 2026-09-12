@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ebe9df">
+    <meta name="description" content="wellcontrolled is a rigorous well control simulator for unlimited practice of the Driller's Method and Wait and Weight Method.">
+    <title>wellcontrolled — well control training simulator</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --ink: #0a1017;
+            --signal: #e0a126;
+            --bg: var(--ink);
+            --panel: color-mix(in srgb, var(--signal) 7%, var(--ink));
+            --panel-light: color-mix(in srgb, var(--signal) 11%, var(--ink));
+            --border: color-mix(in srgb, var(--signal) 26%, var(--ink));
+            --text: color-mix(in srgb, var(--signal) 18%, white);
+            --muted: color-mix(in srgb, var(--signal) 32%, var(--ink));
+            --amber: var(--signal);
+            --amber-light: color-mix(in srgb, var(--signal) 82%, white);
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at 72% 20%, rgba(224, 161, 38, .08), transparent 28rem),
+                linear-gradient(rgba(224,161,38,.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(224,161,38,.025) 1px, transparent 1px),
+                var(--bg);
+            background-size: auto, 32px 32px, 32px 32px, auto;
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        button, input { font: inherit; }
+        a { color: inherit; text-decoration: none; }
+        button { cursor: pointer; }
+        .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 76px;
+            border-bottom: 1px solid rgba(143,157,170,.14);
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-mark {
+            position: relative;
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(221,161,45,.65);
+            border-radius: 8px;
+            background: linear-gradient(145deg, rgba(221,161,45,.2), rgba(221,161,45,.03));
+        }
+        .brand-mark::before, .brand-mark::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            width: 2px;
+            transform: translateX(-50%);
+            background: var(--amber);
+        }
+        .brand-mark::before { top: 6px; height: 22px; }
+        .brand-mark::after { top: 10px; width: 14px; height: 14px; border: 2px solid var(--amber); border-radius: 50%; background: var(--panel); }
+        .brand-name { font-size: .93rem; font-weight: 780; letter-spacing: -.01em; }
+        .brand-label { margin-top: 2px; color: var(--muted); font-size: .64rem; font-weight: 650; letter-spacing: .11em; text-transform: uppercase; }
+        .nav { display: flex; align-items: center; gap: 26px; }
+        .nav-link { color: var(--muted); font-size: .78rem; font-weight: 650; transition: color .2s; }
+        .nav-link:hover { color: var(--text); }
+        .nav-login { padding: 9px 14px; border: 1px solid rgba(221,161,45,.4); border-radius: 7px; color: var(--amber-light); }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(430px, .95fr);
+            align-items: center;
+            gap: 72px;
+            min-height: calc(100vh - 76px);
+            padding: 76px 0 82px;
+        }
+        .eyebrow { display: flex; align-items: center; gap: 10px; color: var(--amber); font-size: .7rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+        .eyebrow::before { content: ""; width: 28px; height: 1px; background: var(--amber); }
+        h1 { max-width: 680px; margin: 22px 0 22px; font-size: clamp(2.75rem, 5.4vw, 5.3rem); font-weight: 720; line-height: .98; letter-spacing: -.055em; }
+        h1 span { color: var(--amber); }
+        .lead { max-width: 590px; margin: 0; color: color-mix(in srgb, var(--signal) 26%, white); font-size: clamp(.98rem, 1.5vw, 1.15rem); line-height: 1.7; }
+        .metrics { display: flex; flex-wrap: wrap; gap: 34px; margin-top: 38px; }
+        .metric { padding-left: 13px; border-left: 2px solid var(--border); }
+        .metric strong { display: block; font-size: 1.05rem; font-weight: 760; }
+        .metric span { display: block; margin-top: 4px; color: var(--muted); font-size: .72rem; }
+
+        .sim-preview { position: relative; min-height: 540px; }
+        .glow { position: absolute; inset: 12% 4% 6%; border-radius: 50%; background: rgba(224,161,38,.09); filter: blur(40px); }
+        .console {
+            position: absolute;
+            inset: 26px 0 26px 42px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: linear-gradient(145deg, var(--panel-light), var(--ink) 78%);
+            box-shadow: 0 36px 80px rgba(10,16,23,.72), inset 0 1px rgba(224,161,38,.14);
+            transform: perspective(1100px) rotateY(-5deg) rotateX(1deg);
+        }
+        .console-bar { display: flex; align-items: center; justify-content: space-between; height: 42px; padding: 0 14px; border-bottom: 1px solid var(--border); background: rgba(10,16,23,.72); color: var(--text); font-size: .62rem; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }
+        .live { display: flex; align-items: center; gap: 7px; color: var(--amber); }
+        .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+        .console-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 9px; padding: 10px; }
+        .instrument { border: 1px solid var(--border); border-radius: 7px; background: linear-gradient(180deg, var(--panel-light), var(--ink)); box-shadow: inset 0 0 0 1px rgba(224,161,38,.06); }
+        .instrument-title { padding: 9px 10px 0; color: var(--amber); font-size: .58rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+        .well { position: relative; grid-row: span 2; min-height: 430px; }
+        .well-ground { position: absolute; inset: 50px 18px 20px; overflow: hidden; border: 1px solid rgba(224,161,38,.18); border-radius: 5px; background: repeating-linear-gradient(168deg, rgba(224,161,38,.3) 0 2px, var(--ink) 2px 7px, rgba(224,161,38,.13) 7px 8px); }
+        .bore { position: absolute; top: 36px; bottom: 14px; left: 50%; width: 82px; transform: translateX(-50%); border: 8px solid rgba(224,161,38,.52); border-top: 0; background: repeating-linear-gradient(0deg, rgba(224,161,38,.2) 0 8px, rgba(224,161,38,.3) 8px 9px); box-shadow: inset 0 0 0 8px var(--panel-light), 0 0 0 2px var(--ink); }
+        .pipe { position: absolute; inset: 0 auto 0 50%; width: 19px; transform: translateX(-50%); border-inline: 3px solid var(--amber); background: repeating-linear-gradient(0deg, var(--ink) 0 9px, rgba(224,161,38,.24) 9px 10px); }
+        .gas { position: absolute; right: 10px; bottom: 0; width: 17px; height: 35%; border-radius: 8px 8px 0 0; background: var(--amber); box-shadow: 0 0 16px rgba(224,161,38,.45); }
+        .depth { position: absolute; right: 13px; color: var(--text); font-size: .55rem; }
+        .d1 { top: 18%; } .d2 { top: 49%; } .d3 { top: 82%; }
+        .gauge-wrap { min-height: 166px; padding-top: 3px; text-align: center; }
+        .gauge { width: 150px; max-width: 94%; }
+        .gauge path { fill: none; stroke: rgba(224,161,38,.48); stroke-width: 4; }
+        .gauge line { stroke: var(--amber); stroke-width: 3; transform-origin: 80px 80px; transform: rotate(22deg); }
+        .gauge circle { fill: var(--amber); }
+        .gauge text { fill: var(--text); font-size: 11px; font-weight: 700; }
+        .trend { grid-column: 2; height: 135px; padding: 9px; }
+        .trend svg { width: 100%; height: 92px; margin-top: 4px; }
+        .trend-grid { stroke: rgba(224,161,38,.14); stroke-width: 1; }
+        .trend-line { fill: none; stroke: var(--amber); stroke-width: 2.2; }
+
+        .access-card {
+            position: absolute;
+            right: -24px;
+            bottom: 0;
+            z-index: 3;
+            width: min(350px, 88%);
+            padding: 22px;
+            border: 1px solid #43515e;
+            border-radius: 12px;
+            background: rgba(18,27,36,.96);
+            box-shadow: 0 20px 45px rgba(0,0,0,.42);
+            backdrop-filter: blur(12px);
+        }
+        .access-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 17px; }
+        .access-head h2 { margin: 0; font-size: 1rem; letter-spacing: -.02em; }
+        .secure { color: var(--amber); font-size: .62rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+        .field { display: block; margin-top: 11px; }
+        .field span { display: block; margin-bottom: 6px; color: var(--muted); font-size: .67rem; font-weight: 700; }
+        .field input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid #364552; border-radius: 7px; outline: none; background: #0e151c; color: var(--text); font-size: .8rem; transition: border .2s, box-shadow .2s; }
+        .field input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(221,161,45,.1); }
+        .field input::placeholder { color: #64717d; }
+        .error { margin: 11px 0 0; padding: 8px 10px; border: 1px solid rgba(224,161,38,.45); border-radius: 6px; background: rgba(224,161,38,.08); color: var(--amber-light); font-size: .72rem; }
+        .submit { width: 100%; height: 43px; margin-top: 15px; border: 0; border-radius: 7px; background: var(--amber); color: #17120a; font-size: .77rem; font-weight: 820; transition: background .2s, transform .2s; }
+        .submit:hover { background: var(--amber-light); transform: translateY(-1px); }
+        .auth-divider { display: flex; align-items: center; gap: 10px; margin: 15px 0 11px; color: #667481; font-size: .62rem; }
+        .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: #303e4a; }
+        .social-auth { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+        .social-button { display: flex; min-width: 0; height: 39px; align-items: center; justify-content: center; gap: 7px; border: 1px solid #364552; border-radius: 7px; background: #111922; color: #dbe1e5; font-size: .68rem; font-weight: 740; transition: border-color .2s, background .2s, transform .2s; }
+        .social-button:hover { border-color: #62717e; background: #19232d; transform: translateY(-1px); }
+        .social-icon { display: grid; width: 17px; height: 17px; place-items: center; border-radius: 4px; font-size: .67rem; font-weight: 900; line-height: 1; }
+        .social-icon.google, .social-icon.linkedin, .social-icon.facebook { background: var(--amber); color: var(--ink); }
+        .social-icon.facebook { border-radius: 50%; }
+        .register-note { margin: 10px 0 0; color: #73818d; font-size: .59rem; line-height: 1.45; text-align: center; }
+
+        .feature-section { padding: 84px 0 94px; border-top: 1px solid rgba(143,157,170,.13); background: linear-gradient(180deg, rgba(255,255,255,.015), transparent); }
+        .section-kicker { color: var(--amber); font-size: .68rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+        .section-title { max-width: 620px; margin: 10px 0 36px; font-size: clamp(1.8rem, 3vw, 2.7rem); line-height: 1.12; letter-spacing: -.04em; }
+        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .feature { min-height: 190px; padding: 23px; border: 1px solid rgba(143,157,170,.17); border-radius: 11px; background: linear-gradient(145deg, rgba(255,255,255,.03), transparent 52%), var(--panel); }
+        .feature-index { color: var(--amber); font: 700 .68rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+        .feature h3 { margin: 35px 0 9px; font-size: .97rem; }
+        .feature p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.65; }
+        .exercise-label { margin: 42px 0 14px; color: var(--muted); font-size: .65rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+        .exercises { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .exercise { display: flex; align-items: center; justify-content: space-between; min-height: 76px; padding: 18px 22px; border: 1px solid rgba(224,161,38,.28); border-radius: 11px; background: var(--ink); }
+        .exercise strong { font-size: .9rem; }
+        .exercise span { color: var(--amber); font: 700 .68rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+        footer { display: flex; justify-content: space-between; gap: 20px; padding: 22px 0 30px; border-top: 1px solid rgba(143,157,170,.13); color: #697783; font-size: .68rem; }
+
+        @media (max-width: 960px) {
+            .hero { grid-template-columns: 1fr; gap: 24px; padding-top: 62px; }
+            .hero-copy { max-width: 760px; }
+            .sim-preview { width: min(680px, 100%); margin: 0 auto; }
+            .features { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 620px) {
+            .shell { width: min(100% - 26px, 1180px); }
+            .nav-link:not(.nav-login) { display: none; }
+            .hero { padding: 48px 0 64px; }
+            h1 { font-size: clamp(2.65rem, 14vw, 4.1rem); }
+            .metrics { gap: 22px; }
+            .sim-preview { min-height: 620px; }
+            .console { inset: 12px 0 105px; transform: none; }
+            .console-grid { grid-template-columns: .9fr 1.1fr; }
+            .access-card { right: 10px; bottom: 0; width: calc(100% - 20px); }
+            .features, .exercises { grid-template-columns: 1fr; }
+            footer { flex-direction: column; }
+        }
+
+        /* Random direction: technical ivory-blue */
+        :root {
+            color-scheme: light;
+            --paper: #ebe9df;
+            --paper-deep: #d9d7cc;
+            --blue: #1647d8;
+            --blue-dark: #092a87;
+            --black: #111827;
+            --hairline: rgba(17, 24, 39, .24);
+        }
+
+        body {
+            background:
+                linear-gradient(90deg, transparent calc(50% - 1px), rgba(22, 71, 216, .08) 50%, transparent calc(50% + 1px)),
+                var(--paper);
+            background-size: 100% 100%;
+            color: var(--black);
+            font-family: "Arial Narrow", "Roboto Condensed", "Segoe UI", sans-serif;
+        }
+
+        .shell { width: min(1240px, calc(100% - 56px)); }
+        .topbar { min-height: 88px; border-color: var(--black); }
+        .brand { gap: 10px; }
+        .brand-mark {
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            border: 0;
+            border-radius: 50%;
+            background: var(--blue);
+        }
+        .brand-mark::before {
+            content: "W";
+            position: static;
+            width: auto;
+            height: auto;
+            transform: none;
+            background: none;
+            color: var(--paper);
+            font-size: 15px;
+            font-weight: 900;
+        }
+        .brand-mark::after { display: none; }
+        .brand-name { color: var(--black); font-size: 1rem; font-weight: 900; letter-spacing: -.04em; }
+        .brand-label { color: rgba(17, 24, 39, .55); font-size: .58rem; }
+        .nav-link { color: var(--black); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
+        .nav-link:hover { color: var(--blue); }
+        .nav-login { padding: 11px 18px; border: 0; border-radius: 0; background: var(--black); color: var(--paper); }
+
+        .hero {
+            grid-template-columns: minmax(0, .9fr) minmax(500px, 1.1fr);
+            gap: 34px;
+            min-height: calc(100vh - 88px);
+            padding: 62px 0 74px;
+        }
+        .hero-copy { position: relative; align-self: start; padding-top: 56px; }
+        .hero-copy::after {
+            content: "01";
+            position: absolute;
+            top: -32px;
+            right: 4%;
+            z-index: -1;
+            color: rgba(22, 71, 216, .08);
+            font: 900 clamp(9rem, 20vw, 17rem)/1 Arial, sans-serif;
+            letter-spacing: -.1em;
+        }
+        .eyebrow { color: var(--blue); font-size: .66rem; letter-spacing: .22em; }
+        .eyebrow::before { width: 48px; height: 3px; background: var(--blue); }
+        h1 { margin: 28px 0 26px; color: var(--black); font-size: clamp(3.1rem, 6.2vw, 6.6rem); font-weight: 900; line-height: .84; letter-spacing: -.075em; text-transform: uppercase; }
+        h1 span { color: var(--blue); }
+        .lead { max-width: 540px; padding-left: 18px; border-left: 1px solid var(--black); color: rgba(17, 24, 39, .72); font-size: 1rem; line-height: 1.55; }
+        .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 44px; border-block: 1px solid var(--black); }
+        .metric { padding: 15px 10px 15px 0; border: 0; }
+        .metric + .metric { padding-left: 14px; border-left: 1px solid var(--black); }
+        .metric strong { color: var(--blue); font-size: .9rem; text-transform: uppercase; }
+        .metric span { color: rgba(17, 24, 39, .56); }
+
+        .sim-preview { min-height: 610px; }
+        .glow { display: none; }
+        .console {
+            inset: 0 14px 92px 30px;
+            border: 3px solid var(--black);
+            border-radius: 0;
+            background: var(--blue-dark);
+            box-shadow: 14px 14px 0 var(--blue);
+            transform: none;
+        }
+        .console-bar { height: 39px; border-color: rgba(235, 233, 223, .3); background: var(--black); color: var(--paper); }
+        .live, .instrument-title { color: #9fb9ff; }
+        .live i { border-radius: 0; background: #9fb9ff; box-shadow: none; }
+        .instrument { border-color: rgba(235, 233, 223, .38); border-radius: 0; background: #0b246b; box-shadow: none; }
+        .well-ground { border: 0; border-radius: 0; background: repeating-linear-gradient(165deg, rgba(235,233,223,.18) 0 1px, transparent 1px 6px); }
+        .bore { border-color: #9fb9ff; background: rgba(235,233,223,.14); box-shadow: inset 0 0 0 8px #0b246b, 0 0 0 2px var(--paper); }
+        .pipe { border-color: var(--paper); background: var(--blue-dark); }
+        .gas { border-radius: 0; background: #9fb9ff; box-shadow: none; }
+        .depth { color: var(--paper); }
+        .gauge path { stroke: rgba(235,233,223,.45); }
+        .gauge line, .gauge circle { stroke: #9fb9ff; fill: #9fb9ff; }
+        .gauge text { fill: var(--paper); }
+        .trend-grid { stroke: rgba(235,233,223,.16); }
+        .trend-line { stroke: #9fb9ff; }
+
+        .access-card {
+            right: -8px;
+            bottom: 0;
+            width: min(370px, 92%);
+            padding: 20px 22px;
+            border: 3px solid var(--black);
+            border-radius: 0;
+            background: var(--paper);
+            box-shadow: 9px 9px 0 var(--black);
+            color: var(--black);
+            backdrop-filter: none;
+        }
+        .access-head { padding-bottom: 10px; border-bottom: 1px solid var(--black); }
+        .access-head h2 { font-size: .88rem; text-transform: uppercase; letter-spacing: .08em; }
+        .secure { color: var(--blue); }
+        .field span { color: rgba(17, 24, 39, .66); text-transform: uppercase; letter-spacing: .08em; }
+        .field input { height: 38px; border: 0; border-bottom: 2px solid var(--black); border-radius: 0; background: transparent; color: var(--black); }
+        .field input:focus { border-color: var(--blue); box-shadow: none; }
+        .field input::placeholder { color: rgba(17, 24, 39, .38); }
+        .error { border-radius: 0; border-color: var(--blue); background: rgba(22,71,216,.08); color: var(--blue-dark); }
+        .submit { height: 40px; border-radius: 0; background: var(--blue); color: white; text-transform: uppercase; letter-spacing: .08em; }
+        .submit:hover { background: var(--black); }
+        .auth-divider { color: rgba(17,24,39,.48); }
+        .auth-divider::before, .auth-divider::after { background: var(--hairline); }
+        .social-button { height: 36px; border-color: var(--black); border-radius: 0; background: transparent; color: var(--black); }
+        .social-button:hover { border-color: var(--blue); background: var(--blue); color: white; }
+        .social-icon.google, .social-icon.linkedin, .social-icon.facebook { border-radius: 0; background: var(--black); color: var(--paper); }
+        .register-note { color: rgba(17,24,39,.5); }
+
+        .feature-section { padding: 100px 0; border-top: 3px solid var(--black); background: var(--paper-deep); }
+        .section-kicker { color: var(--blue); }
+        .section-title { max-width: 760px; margin-bottom: 54px; color: var(--black); font-size: clamp(2.4rem, 5vw, 5rem); font-weight: 900; line-height: .9; text-transform: uppercase; }
+        .features { display: block; border-top: 1px solid var(--black); }
+        .feature { display: grid; grid-template-columns: 70px minmax(180px, .7fr) 1.3fr; align-items: baseline; min-height: 0; padding: 25px 0; border: 0; border-bottom: 1px solid var(--black); border-radius: 0; background: transparent; box-shadow: none; }
+        .feature-index { color: var(--blue); }
+        .feature h3 { margin: 0; color: var(--black); font-size: 1rem; text-transform: uppercase; }
+        .feature p { max-width: 600px; margin: 0; color: rgba(17,24,39,.66); font-size: .85rem; }
+        .exercise-label { color: var(--blue); }
+        .exercises { gap: 0; border-block: 3px solid var(--blue); }
+        .exercise { min-height: 86px; border: 0; border-radius: 0; background: transparent; color: var(--black); }
+        .exercise + .exercise { border-left: 1px solid var(--blue); }
+        .exercise strong { font-size: 1.05rem; text-transform: uppercase; }
+        .exercise span { color: var(--blue); font-size: 1rem; }
+        footer { border-color: var(--black); color: rgba(17,24,39,.55); }
+
+        @media (max-width: 960px) {
+            .hero { grid-template-columns: 1fr; }
+            .hero-copy { padding-top: 20px; }
+            .sim-preview { width: min(720px, 100%); }
+        }
+        @media (max-width: 620px) {
+            .shell { width: min(100% - 28px, 1240px); }
+            .hero { padding-top: 35px; }
+            h1 { font-size: clamp(3rem, 16vw, 5rem); }
+            .metrics { grid-template-columns: 1fr; }
+            .metric + .metric { padding-left: 0; border-top: 1px solid var(--black); border-left: 0; }
+            .console { inset-inline: 0; box-shadow: 7px 7px 0 var(--blue); }
+            .access-card { right: 4px; }
+            .feature { grid-template-columns: 48px 1fr; gap: 8px; }
+            .feature p { grid-column: 2; }
+            .exercise + .exercise { border-top: 1px solid var(--blue); border-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <header class="shell topbar">
+        <a class="brand" href="/" aria-label="wellcontrolled">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span><span class="brand-name">wellcontrolled</span><span class="brand-label">Well control simulator</span></span>
+        </a>
+        <nav class="nav" aria-label="Main navigation">
+            <a class="nav-link" href="#capabilities">How it works</a>
+            <a class="nav-link nav-login" href="#access">Sign in</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="shell hero">
+            <div class="hero-copy">
+                <div class="eyebrow">Physics-based training</div>
+                <h1>Train as much<br><span>as you want.</span></h1>
+                <p class="lead">Master a complex well control procedure in every detail. See fluids move through the well, understand every pressure response, and repeat each operation until it becomes second nature.</p>
+                <div class="metrics" aria-label="Key capabilities">
+                    <div class="metric"><strong>Real-time</strong><span>Physics simulation</span></div>
+                    <div class="metric"><strong>Unlimited</strong><span>Practice sessions</span></div>
+                    <div class="metric"><strong>Live view</strong><span>Fluid movement</span></div>
+                </div>
+            </div>
+
+            <div class="sim-preview" aria-label="Simulator interface">
+                <div class="glow"></div>
+                <div class="console">
+                    <div class="console-bar"><span>Drilling control room</span><span class="live"><i></i> Simulation active</span></div>
+                    <div class="console-grid">
+                        <div class="instrument well">
+                            <div class="instrument-title">Annulus</div>
+                            <div class="well-ground"></div>
+                            <div class="bore"><div class="pipe"></div><div class="gas"></div></div>
+                            <span class="depth d1">850 m</span><span class="depth d2">1 720 m</span><span class="depth d3">2 640 m</span>
+                        </div>
+                        <div class="instrument gauge-wrap">
+                            <div class="instrument-title">Casing pressure</div>
+                            <svg class="gauge" viewBox="0 0 160 125" aria-hidden="true">
+                                <path d="M 25 96 A 60 60 0 1 1 135 96" />
+                                <line x1="80" y1="91" x2="80" y2="40" />
+                                <circle cx="80" cy="91" r="6" />
+                                <text x="80" y="116" text-anchor="middle">142.8 atm</text>
+                            </svg>
+                        </div>
+                        <div class="instrument trend">
+                            <div class="instrument-title">Pzab trend</div>
+                            <svg viewBox="0 0 250 88" preserveAspectRatio="none" aria-hidden="true">
+                                <path class="trend-grid" d="M0 20H250M0 44H250M0 68H250" />
+                                <polyline class="trend-line" points="0,64 24,60 48,62 72,51 96,54 120,42 144,45 168,30 192,33 216,23 250,27" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="access" class="access-card" method="post" action="/login">
+                    <div class="access-head"><h2>Access the simulator</h2><span class="secure">● Secure</span></div>
+                    <label class="field"><span>Username</span><input type="text" name="username" autocomplete="username" placeholder="Enter your username" required autofocus></label>
+                    <label class="field"><span>Password</span><input type="password" name="password" autocomplete="current-password" placeholder="Enter your password" required></label>
+                    {% if message %}<p class="error" role="alert">{{ message }}</p>{% endif %}
+                    <button class="submit" type="submit">Launch simulator →</button>
+                    <div class="auth-divider"><span>or continue with</span></div>
+                    <div class="social-auth">
+                        <a class="social-button" href="/auth/google" aria-label="Continue with Google"><span class="social-icon google">G</span><span>Google</span></a>
+                        <a class="social-button" href="/auth/linkedin" aria-label="Continue with LinkedIn"><span class="social-icon linkedin">in</span><span>LinkedIn</span></a>
+                        <a class="social-button" href="/auth/facebook" aria-label="Continue with Facebook"><span class="social-icon facebook">f</span><span>Facebook</span></a>
+                    </div>
+                    <p class="register-note">Your profile is created automatically on first sign-in.</p>
+                </form>
+            </div>
+        </section>
+
+        <section id="capabilities" class="feature-section">
+            <div class="shell">
+                <div class="section-kicker">Learn by doing</div>
+                <h2 class="section-title">Understand what happens inside the well</h2>
+                <div class="features">
+                    <article class="feature"><span class="feature-index">01 /</span><h3>Unlimited practice</h3><p>Repeat complex procedures as often as you need and examine every step without operational risk.</p></article>
+                    <article class="feature"><span class="feature-index">02 /</span><h3>Fluid movement in view</h3><p>Follow mud and gas movement through the drillpipe and annulus while pressures change in real time.</p></article>
+                    <article class="feature"><span class="feature-index">03 /</span><h3>Rigorous mathematical model</h3><p>The simulator accounts for gas compressibility, gas slug migration, and other important physical effects.</p></article>
+                </div>
+                <div class="exercise-label">Core exercises</div>
+                <div class="exercises">
+                    <article class="exercise"><strong>Driller's Method</strong><span>01</span></article>
+                    <article class="exercise"><strong>Wait and Weight Method</strong><span>02</span></article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="shell"><span>© 2026 wellcontrolled</span><span>Physics-based training · Authorized access only</span></footer>
+</body>
+</html>

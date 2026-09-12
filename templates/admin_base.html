@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1118">
+    <title>{% block title %}Case management{% endblock %} · Well Control Simulator</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0b1118;
+            --panel: #151d27;
+            --panel-soft: #1b2531;
+            --border: #2b3948;
+            --text: #f1f5f7;
+            --muted: #8fa0af;
+            --accent: #e0a126;
+            --accent-hover: #efb23e;
+            --success: #45b779;
+            --danger: #e35d52;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            background:
+                radial-gradient(circle at 50% -15%, rgba(65, 89, 112, .23), transparent 38%),
+                var(--bg);
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        a { color: inherit; text-decoration: none; }
+        button, input { font: inherit; }
+
+        .shell {
+            width: min(1180px, calc(100% - 28px));
+            margin: 0 auto;
+            padding: 18px 0 36px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 22px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(143, 160, 175, .16);
+        }
+
+        .brand small {
+            display: block;
+            color: var(--accent);
+            font-size: .68rem;
+            font-weight: 800;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+        }
+
+        .brand strong {
+            display: block;
+            margin-top: 3px;
+            font-size: 1.25rem;
+            letter-spacing: -.025em;
+        }
+
+        .topnav { display: flex; align-items: center; gap: 8px; }
+
+        .button {
+            display: inline-flex;
+            min-height: 38px;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 8px 13px;
+            border: 1px solid rgba(143, 160, 175, .22);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .035);
+            color: var(--text);
+            font-size: .82rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .button:hover { border-color: rgba(143, 160, 175, .48); background: rgba(255, 255, 255, .07); }
+        .button.primary { border-color: var(--accent); background: var(--accent); color: #17110a; }
+        .button.primary:hover { background: var(--accent-hover); }
+
+        .page-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 16px;
+        }
+
+        h1 { margin: 0; font-size: clamp(1.45rem, 3vw, 2rem); letter-spacing: -.035em; }
+        .subtitle { margin: 5px 0 0; color: var(--muted); font-size: .88rem; }
+
+        .panel {
+            border: 1px solid rgba(143, 160, 175, .18);
+            border-radius: 14px;
+            background:
+                linear-gradient(145deg, rgba(255, 255, 255, .025), transparent 42%),
+                var(--panel);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, .2);
+        }
+
+        .notice {
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            border: 1px solid rgba(69, 183, 121, .35);
+            border-radius: 9px;
+            background: rgba(69, 183, 121, .1);
+            color: #8cddb0;
+            font-size: .84rem;
+        }
+
+        .notice.error {
+            border-color: rgba(227, 93, 82, .38);
+            background: rgba(227, 93, 82, .1);
+            color: #f2a39d;
+        }
+
+        @media (max-width: 640px) {
+            .topbar, .page-heading { align-items: flex-start; flex-direction: column; }
+            .topnav { width: 100%; flex-wrap: wrap; }
+            .page-heading .button { width: 100%; }
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<div class="shell">
+    <header class="topbar">
+        <a class="brand" href="/admin/cases">
+            <small>Well control simulator</small>
+            <strong>Admin workspace</strong>
+        </a>
+        <nav class="topnav" aria-label="Admin navigation">
+            <a class="button" href="/cases">User cases</a>
+            <a class="button" href="/logout">Log out</a>
+        </nav>
+    </header>
+    <main>{% block content %}{% endblock %}</main>
+</div>
+</body>
+</html>

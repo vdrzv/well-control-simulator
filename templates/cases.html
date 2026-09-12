@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1118">
+    <title>Cases · Well Control Simulator</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0b1118;
+            --panel: #151d27;
+            --panel-soft: #1b2531;
+            --border: #2b3948;
+            --text: #f1f5f7;
+            --muted: #8fa0af;
+            --accent: #e0a126;
+            --accent-hover: #efb23e;
+            --green: #45b779;
+            --red: #e35d52;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            background:
+                radial-gradient(circle at 50% -15%, rgba(65, 89, 112, .23), transparent 38%),
+                var(--bg);
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        button, input { font: inherit; }
+        a { color: inherit; text-decoration: none; }
+        form { margin: 0; }
+
+        .shell {
+            width: min(1120px, calc(100% - 28px));
+            margin: 0 auto;
+            padding: 18px 0 36px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 26px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(143, 160, 175, .16);
+        }
+
+        .brand small {
+            display: block;
+            color: var(--accent);
+            font-size: .68rem;
+            font-weight: 800;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+        }
+
+        .brand strong {
+            display: block;
+            margin-top: 3px;
+            font-size: 1.25rem;
+            letter-spacing: -.025em;
+        }
+
+        .nav { display: flex; align-items: center; gap: 8px; }
+        .operator { color: var(--muted); font-size: .8rem; }
+
+        .button {
+            display: inline-flex;
+            min-height: 38px;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 13px;
+            border: 1px solid rgba(143, 160, 175, .24);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .035);
+            color: var(--text);
+            font-size: .8rem;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        .button:hover { border-color: rgba(143, 160, 175, .5); background: rgba(255, 255, 255, .07); }
+        .button.primary { border-color: var(--accent); background: var(--accent); color: #17110a; }
+        .button.primary:hover { background: var(--accent-hover); }
+        .button.danger { border-color: rgba(227, 93, 82, .32); color: #f08f87; }
+        .button.danger:hover { border-color: var(--red); background: rgba(227, 93, 82, .12); }
+
+        .section { margin-bottom: 26px; }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        h1, h2 { margin: 0; letter-spacing: -.025em; }
+        h1 { font-size: clamp(1.5rem, 3vw, 2rem); }
+        h2 { font-size: 1.05rem; }
+        .subtitle { margin: 5px 0 0; color: var(--muted); font-size: .82rem; }
+        .count { color: var(--muted); font-size: .74rem; font-weight: 700; }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .card {
+            border: 1px solid rgba(143, 160, 175, .18);
+            border-radius: 12px;
+            background:
+                linear-gradient(145deg, rgba(255, 255, 255, .025), transparent 42%),
+                var(--panel);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, .18);
+        }
+
+        .template-card {
+            display: flex;
+            min-height: 132px;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 15px;
+        }
+
+        .template-id {
+            color: var(--accent);
+            font-size: .65rem;
+            font-weight: 800;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        .template-name { margin-top: 5px; font-size: .95rem; font-weight: 750; }
+        .template-card .button { width: 100%; }
+
+        .run-list { overflow: hidden; }
+
+        .run-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 16px;
+            min-height: 82px;
+            padding: 13px 16px;
+            border-bottom: 1px solid rgba(143, 160, 175, .12);
+        }
+
+        .run-row:last-child { border-bottom: 0; }
+        .run-row:hover { background: rgba(255, 255, 255, .018); }
+
+        .run-identifier {
+            overflow-wrap: anywhere;
+            font-size: .9rem;
+            font-weight: 750;
+        }
+
+        .run-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px 14px;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: .72rem;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #78d49e;
+        }
+
+        .status::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+        .status-paused { color: #e0a126; }
+        .status-paused::before { background: #e0a126; }
+        .status-fast_forward { color: #63c3d8; }
+        .status-fast_forward::before { background: #63c3d8; }
+        .status-failed { color: #ef8178; }
+        .status-failed::before { background: #e35d52; }
+        .status-completed { color: #aeb9c2; }
+        .status-completed::before { background: #8fa0af; }
+
+        .run-actions { display: flex; gap: 8px; }
+
+        .empty {
+            padding: 36px 18px;
+            color: var(--muted);
+            text-align: center;
+            font-size: .84rem;
+        }
+
+        .notice {
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            border: 1px solid rgba(69, 183, 121, .35);
+            border-radius: 9px;
+            background: rgba(69, 183, 121, .1);
+            color: #8cddb0;
+            font-size: .82rem;
+        }
+
+        .notice.error {
+            border-color: rgba(227, 93, 82, .38);
+            background: rgba(227, 93, 82, .1);
+            color: #f2a39d;
+        }
+
+        @media (max-width: 760px) {
+            .template-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 560px) {
+            .topbar { align-items: flex-start; flex-direction: column; }
+            .nav { width: 100%; flex-wrap: wrap; }
+            .operator { width: 100%; }
+            .template-grid { grid-template-columns: minmax(0, 1fr); }
+            .run-row { grid-template-columns: minmax(0, 1fr); }
+            .run-actions .button { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <header class="topbar">
+        <div class="brand">
+            <small>Well control simulator</small>
+            <strong>Exercises</strong>
+        </div>
+        <nav class="nav">
+            <span class="operator">{{ user }}</span>
+            {% if is_admin %}<a class="button" href="/admin/cases">Manage templates</a>{% endif %}
+            <a class="button" href="/logout">Log out</a>
+        </nav>
+    </header>
+
+    {% if request.query_params.get("deleted") %}
+    <div class="notice">The run was deleted.</div>
+    {% endif %}
+    {% if request.query_params.get("missing_run") %}
+    <div class="notice error">The requested run was not found.</div>
+    {% endif %}
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h1>Start new case</h1>
+                <p class="subtitle">Choose an exercise template. Each start creates a separate run.</p>
+            </div>
+            <span class="count">{{ cases|length }} templates</span>
+        </div>
+
+        {% if cases %}
+        <div class="template-grid">
+            {% for case in cases %}
+            <article class="card template-card">
+                <div>
+                    <div class="template-id">Template #{{ case.id }}</div>
+                    <div class="template-name">{{ case.name }}</div>
+                </div>
+                <form method="post" action="/cases/{{ case.id }}/runs">
+                    <button class="button primary" type="submit">Start new run</button>
+                </form>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card empty">No exercise templates are assigned to this user.</div>
+        {% endif %}
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h2>Existing runs</h2>
+                <p class="subtitle">Resume an active exercise or remove it from your list.</p>
+            </div>
+            <span class="count">{{ runs|length }} active</span>
+        </div>
+
+        <div class="card run-list">
+            {% if runs %}
+                {% for run in runs %}
+                <article class="run-row">
+                    <div>
+                        <div class="run-identifier">
+                            {{ run.case_name }} · {{ run.created_at.strftime("%Y-%m-%d %H:%M:%S") }}
+                        </div>
+                        <div class="run-meta">
+                            <span>Run #{{ run.id }}</span>
+                            <span>Template #{{ run.case_id }}</span>
+                            <span class="status status-{{ run.state }}">{{ 'Finished' if run.state == 'completed' else run.state.replace('_', ' ')|title }}</span>
+                        </div>
+                    </div>
+                    <div class="run-actions">
+                        {% if run.state in ['failed', 'completed'] %}
+                        <a class="button primary" href="/runs/{{ run.id }}/analysis">Analysis</a>
+                        {% else %}
+                        <a class="button primary" href="/run/{{ run.id }}">Resume</a>
+                        {% endif %}
+                        <form method="post" action="/runs/{{ run.id }}/delete" onsubmit="return confirm('Delete this run?');">
+                            <button class="button danger" type="submit">Delete</button>
+                        </form>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div class="empty">There are no active runs yet.</div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+</body>
+</html>

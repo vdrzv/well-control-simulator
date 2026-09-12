@@ -1,0 +1,131 @@
+{% extends "admin_base.html" %}
+{% block title %}Cases{% endblock %}
+{% block head %}
+<style>
+    .case-list { display: grid; gap: 1px; overflow: hidden; }
+
+    .case-row {
+        display: grid;
+        grid-template-columns: 58px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 14px;
+        min-height: 72px;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, .012);
+        border-bottom: 1px solid rgba(143, 160, 175, .12);
+    }
+
+    .case-row:last-child { border-bottom: 0; }
+    .case-row:hover { background: rgba(255, 255, 255, .03); }
+
+    .case-id {
+        color: var(--muted);
+        font-size: .74rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+    }
+
+    .case-name { min-width: 0; font-size: .95rem; font-weight: 700; }
+    .case-meta { margin-top: 4px; color: var(--muted); font-size: .75rem; }
+    .case-actions { display: flex; gap: 8px; }
+
+    .copy-control { position: relative; }
+    .copy-control summary { list-style: none; }
+    .copy-control summary::-webkit-details-marker { display: none; }
+
+    .copy-form {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 5;
+        display: grid;
+        grid-template-columns: minmax(190px, 1fr) auto;
+        gap: 7px;
+        width: min(360px, calc(100vw - 48px));
+        padding: 10px;
+        border: 1px solid rgba(143, 160, 175, .28);
+        border-radius: 10px;
+        background: #111923;
+        box-shadow: 0 16px 34px rgba(0, 0, 0, .42);
+    }
+
+    .copy-form input {
+        min-width: 0;
+        padding: 8px 10px;
+        border: 1px solid rgba(143, 160, 175, .28);
+        border-radius: 7px;
+        outline: 0;
+        background: #0a1017;
+        color: var(--text);
+    }
+
+    .copy-form input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(224, 161, 38, .13);
+    }
+
+    .empty { padding: 48px 20px; color: var(--muted); text-align: center; }
+
+    @media (max-width: 600px) {
+        .case-row { grid-template-columns: 44px minmax(0, 1fr); }
+        .case-actions { grid-column: 1 / -1; }
+        .case-actions > .button { flex: 1; }
+        .copy-control { flex: 1; }
+        .copy-control > summary { width: 100%; }
+        .copy-form { position: fixed; top: 50%; right: 14px; left: 14px; width: auto; transform: translateY(-50%); }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1>Cases</h1>
+        <p class="subtitle">Create scenarios and maintain their simulation parameters.</p>
+    </div>
+    <a class="button primary" href="/admin/cases/new">＋ Create case</a>
+</div>
+
+{% if request.query_params.get("missing") %}
+<div class="notice error">The requested case was not found.</div>
+{% endif %}
+{% if request.query_params.get("copy_error") %}
+<div class="notice error">Enter a name for the copied case.</div>
+{% endif %}
+
+<section class="panel case-list" aria-label="Cases">
+    {% if cases %}
+        {% for case in cases %}
+        <article class="case-row">
+            <span class="case-id">#{{ case.id }}</span>
+            <div>
+                <div class="case-name">{{ case.name }}</div>
+                <div class="case-meta">Simulation case</div>
+            </div>
+            <div class="case-actions">
+                <form method="post" action="/cases/{{ case.id }}/runs">
+                    <button class="button" type="submit">Start</button>
+                </form>
+                <details class="copy-control">
+                    <summary class="button">Copy as</summary>
+                    <form class="copy-form" method="post" action="/admin/cases/{{ case.id }}/copy">
+                        <input
+                            type="text"
+                            name="name"
+                            value="{{ case.name }} copy"
+                            placeholder="New case name"
+                            maxlength="255"
+                            required
+                            aria-label="Copied case name"
+                        >
+                        <button class="button primary" type="submit">Copy</button>
+                    </form>
+                </details>
+                <a class="button primary" href="/admin/cases/{{ case.id }}/edit">Edit</a>
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+        <div class="empty">No cases yet. Create the first simulation case.</div>
+    {% endif %}
+</section>
+{% endblock %}
